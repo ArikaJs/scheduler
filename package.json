@@ -16,6 +16,7 @@
     "@arikajs/queue": "file:../queue",
     "@arikajs/console": "file:../console",
     "@arikajs/cache": "file:../cache",
+    "@arikajs/events": "file:../events",
     "cron-parser": "^4.9.0"
   },
   "devDependencies": {

@@ -9,8 +9,28 @@ export class Event implements Task {
     protected expiresAt: number = 1440; // 24 hours default for overlap lock
     protected successCallbacks: Function[] = [];
     protected failureCallbacks: (Function)[] = [];
+    protected timeoutVal: number = 0;
+    protected retriesVal: number = 0;
+    protected retryDelayVal: number = 0;
+    protected descriptionVal: string = '';
 
     constructor(public readonly command: string | Function) { }
+
+    public name(description: string): this {
+        this.descriptionVal = description;
+        return this;
+    }
+
+    public timeout(seconds: number): this {
+        this.timeoutVal = seconds;
+        return this;
+    }
+
+    public retry(times: number, delay: number = 0): this {
+        this.retriesVal = times;
+        this.retryDelayVal = delay;
+        return this;
+    }
 
     public cron(expression: string): this {
         this.cronExpression = expression;
@@ -111,5 +131,21 @@ export class Event implements Task {
 
     public mutexExpiration(): number {
         return this.expiresAt;
+    }
+
+    public getTimeout(): number {
+        return this.timeoutVal;
+    }
+
+    public getRetries(): number {
+        return this.retriesVal;
+    }
+
+    public getRetryDelay(): number {
+        return this.retryDelayVal;
+    }
+
+    public getDescription(): string {
+        return this.descriptionVal;
     }
 }

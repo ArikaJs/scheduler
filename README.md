@@ -12,13 +12,16 @@ The scheduler is designed to work seamlessly with `@arikajs/foundation`, `@arika
 ## ✨ Features
 
 - **🕒 Fluent scheduling API**: Expressive and readable schedule definitions
+- **⚡ Parallel Execution**: Non-blocking task execution for high performance
+- **🏆 Cluster Safety**: Leader election prevents double-execution in distributed environments
 - **🔁 Cron-based scheduling**: Full support for standard cron expressions
 - **⏱ Human-readable intervals**: Preset methods like `everyMinute()`, `hourly()`, `daily()`
 - **🧵 Queue integration**: Dispatch jobs directly to the background instead of blocking
 - **🪵 Logging integration**: Automatically logs task starts, completions, and failures
-- **🚦 Overlapping prevention**: Use cache locks to ensure tasks don't run twice simultaneously
+- **🛡️ Task Control**: Built-in support for timeouts and automatic retries
+- **📡 Lifecycle Events**: Real-time monitoring via `@arikajs/events`
 - **🌍 Timezone support**: Run tasks relative to your preferred global or local timezone
-- **🧠 Stateless & worker-safe**: Perfect for containerized or clustered deployments
+- **🛑 Graceful Shutdown**: Safe worker termination without dropping tasks
 - **🟦 TypeScript-first**: Full type safety for all scheduling operations
 
 ---
@@ -27,16 +30,13 @@ The scheduler is designed to work seamlessly with `@arikajs/foundation`, `@arika
 
 ```bash
 npm install @arikajs/scheduler
-# or
-yarn add @arikajs/scheduler
-# or
-pnpm add @arikajs/scheduler
 ```
 
 **Requires:**
 - `@arikajs/foundation`
 - `@arikajs/logging`
-- `@arikajs/queue` (optional but recommended)
+- `@arikajs/cache` (recommended for overlapping & cluster locks)
+- `@arikajs/events` (optional, for monitoring)
 
 ---
 
@@ -50,13 +50,16 @@ Create a scheduler definition file (e.g., `app/Console/Kernel.ts`):
 import { Schedule } from '@arikajs/scheduler';
 
 export default (schedule: Schedule) => {
-  // Run a closure every minute
+  // Run a closure every minute with a name
   schedule.call(() => {
     console.log('Running every minute');
-  }).everyMinute();
+  }).everyMinute().name('important-sync');
 
-  // Run a CLI command daily
-  schedule.command('app:cleanup').daily();
+  // Run a CLI command daily with timeout and retries
+  schedule.command('app:cleanup')
+    .daily()
+    .timeout(60) // 1 minute timeout
+    .retry(3, 10); // retry 3 times with 10s delay
 
   // Dispatch a job to the queue hourly
   schedule.job(CleanupJob).hourly();
@@ -93,61 +96,43 @@ schedule.call(async () => {
 schedule.command('cache:clear').dailyAt('02:00');
 ```
 
-### 🧵 Dispatch a Queue Job
-```ts
-schedule.job(SendEmailsJob).everyFiveMinutes();
-```
-*Note: This will dispatch the job to `@arikajs/queue`.*
-
----
-
-## ⏱ Frequency Methods
-
-| Method | Description | Cron Equivalent |
-| :--- | :--- | :--- |
-| `.everyMinute()` | Run every minute | `* * * * *` |
-| `.everyFiveMinutes()` | Run every 5 minutes | `*/5 * * * *` |
-| `.hourly()` | Run at the start of every hour | `0 * * * *` |
-| `.hourlyAt(15)` | Run at 15 minutes past the hour | `15 * * * *` |
-| `.daily()` | Run at midnight every day | `0 0 * * *` |
-| `.dailyAt('13:00')` | Run at 1:00 PM every day | `0 13 * * *` |
-| `.weekly()` | Run every Sunday | `0 0 * * 0` |
-| `.monthly()` | Run on the first day of every month | `0 0 1 * *` |
-| `.cron('* * * * *')` | Custom cron expression | User defined |
-
 ---
 
 ## 🛡 Advanced Usage
 
+### Parallel Execution & Leader Election
+The scheduler automatically runs all due tasks in parallel so complex tasks don't block simple ones. 
+
+In a clustered environment (multiple servers/containers), the scheduler uses `@arikajs/cache` to perform **Leader Election**. Only one server will process the schedule for any given minute, ensuring safety without extra configuration.
+
 ### Preventing Overlaps
-If a task should not run if its previous instance is still active:
+If a specific task should not start if its previous instance is still active:
 ```ts
 schedule
   .command('report:generate')
   .everyMinute()
   .withoutOverlapping();
 ```
-*Requires `@arikajs/cache` to be configured.*
 
-### Timezone Support
+### Timezone & Retries
 ```ts
 schedule
   .command('backup:run')
   .dailyAt('01:00')
-  .timezone('Asia/Kolkata');
+  .timezone('Asia/Kolkata')
+  .retry(3, 30); // Retry 3 times with 30s delay between attempts
 ```
 
-### Lifecycle Hooks
+### Monitoring via Events
+The scheduler emits events that you can listen to in your `EventsServiceProvider`:
+- `scheduler.TaskStarting`
+- `scheduler.TaskFinished
+- `scheduler.TaskFailed`
+
 ```ts
-schedule
-  .command('cleanup')
-  .daily()
-  .onSuccess(() => {
-    console.log('Cleanup successful');
-  })
-  .onFailure((error) => {
-    console.error(`Cleanup failed: ${error.message}`);
-  });
+Event.listen('scheduler.TaskFailed', (data) => {
+    Log.error(`CRITICAL: Task ${data.task} failed! Error: ${data.err.message}`);
+});
 ```
 
 ---
