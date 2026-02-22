@@ -3,7 +3,7 @@
 
 `@arikajs/scheduler` provides a clean, expressive, and framework-integrated task scheduling system for the ArikaJS ecosystem.
 
-It allows you to define scheduled jobs directly in code using a fluent API — similar in spirit to Laravel’s scheduler — while remaining lightweight and Node.js-native.
+It allows you to define scheduled jobs directly in code using a fluent API — designed for elegance and clarity — while remaining lightweight and Node.js-native.
 
 The scheduler is designed to work seamlessly with `@arikajs/foundation`, `@arikajs/queue`, and `@arikajs/logging`.
 
@@ -139,17 +139,37 @@ Event.listen('scheduler.TaskFailed', (data) => {
 
 ## 🏗 Architecture
 
-```
+```text
 scheduler/
 ├── src/
-│   ├── Scheduler.ts   # Main runner logic
-│   ├── Schedule.ts    # Fluent API definition
-│   ├── Event.ts       # Individual task event
-│   ├── Worker.ts      # Persistent daemon
-│   ├── Contracts/
-│   │   └── Task.ts    # Task interface
-│   └── index.ts
-├── tests/             # Unit tests
+│   ├── Contracts
+│   │   └── Task.ts
+│   ├── Mutex
+│   ├── Event.ts
+│   ├── index.ts
+│   ├── Schedule.ts
+│   ├── Scheduler.ts
+│   └── Worker.ts
+├── tests/
+├── package.json
+├── tsconfig.json
+└── README.md
+```
+
+
+
+```text
+scheduler/
+├── src/
+│   ├── Contracts
+│   │   └── Task.ts
+│   ├── Mutex
+│   ├── Event.ts
+│   ├── index.ts
+│   ├── Schedule.ts
+│   ├── Scheduler.ts
+│   └── Worker.ts
+├── tests/
 ├── package.json
 ├── tsconfig.json
 └── README.md
