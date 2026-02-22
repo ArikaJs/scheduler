@@ -137,27 +137,6 @@ Event.listen('scheduler.TaskFailed', (data) => {
 
 ---
 
-## 🏗 Architecture
-
-```text
-scheduler/
-├── src/
-│   ├── Contracts
-│   │   └── Task.ts
-│   ├── Mutex
-│   ├── Event.ts
-│   ├── index.ts
-│   ├── Schedule.ts
-│   ├── Scheduler.ts
-│   └── Worker.ts
-├── tests/
-├── package.json
-├── tsconfig.json
-└── README.md
-```
-
-
-
 ```text
 scheduler/
 ├── src/
@@ -176,6 +155,25 @@ scheduler/
 ```
 
 ---
+
+## 🏗 Architecture
+
+```text
+scheduler/
+├── src/
+│   ├── Contracts
+│   │   └── Task.ts
+│   ├── Mutex
+│   ├── Event.ts
+│   ├── index.ts
+│   ├── Schedule.ts
+│   ├── Scheduler.ts
+│   └── Worker.ts
+├── tests/
+├── package.json
+├── tsconfig.json
+└── README.md
+```
 
 ## 📄 License
 
